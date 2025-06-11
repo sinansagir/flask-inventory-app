@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envanter Ekle</title>
+</head>
+<body>
+    <h2>Envanter Ekle</h2>
+    <form method="POST" enctype="multipart/form-data">
+		<label>Envanter Adı:</label>
+		<input type="text" name="name" required><br>
+	
+		<label>Kategori:</label>
+		<input type="text" name="category"><br>
+	
+		<label>Bölüm:</label>
+		<select name="department">
+			<option value="Biyoloji">Biyoloji</option>
+			<option value="Fen Fakültesi">Fen Fakültesi</option>
+			<option value="Fizik">Fizik</option>
+			<option value="Kimya">Kimya</option>
+			<option value="Matematik">Matematik</option>
+		</select><br>
+
+		<label>Lokasyon/Oda:</label>
+		<input type="text" name="location" required><br>
+
+		<label>Seri Numarası:</label>
+		<input type="text" name="serial_number" required><br>
+	
+		<label>Zimmetlenen Kişi:</label>
+		<input type="text" name="assigned_to"><br>
+	
+		<label>Durum:</label>
+		<select name="status">
+			<option value="Depoda">Depoda</option>
+			<option value="Kullanımda">Kullanımda</option>
+			<option value="Arızalı">Arızalı</option>
+		</select><br>
+
+		<label>Notlar:</label>
+		<input type="text" name="notes"><br>
+
+		<label>Satın Alma Tarihi:</label>
+		<input type="date" name="purchase_date"><br>
+
+		<label>Satın Alma Fiyatı:</label>
+		<input type="text" name="purchase_price"><br>
+	
+		<label>Garanti Bitiş Tarihi:</label>
+		<input type="date" name="warranty_end"><br>
+
+		<label>Satın Alındığı Firma / Marka:</label>
+		<input type="text" name="supplier"><br>
+
+		<label>Bakım Gereksinimi:</label>
+		<input type="text" name="maintenance_required"><br>
+		
+		<label>Resim:</label>
+		<input type="file" name="image"><br>
+	
+		<button type="submit">Ekle</button>
+    </form>
+    <a href="{{ url_for('index') }}">Geri</a>
+</body>
+</html>
+{% endblock %}

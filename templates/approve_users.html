@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Bekleyen Hesap Onayları</h2>
+<a href="{{ url_for('admin') }}">Geri</a>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Durum</th>
+        <th>İşlemler</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+            {% if user.approved %}
+                <span style="color: green;">Onaylı</span>
+            {% else %}
+                <span style="color: red;">Onaysız</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if not user.approved %}
+                <a href="{{ url_for('approve', id=user.id) }}">Onayla</a>
+            {% else %}
+                <a href="{{ url_for('revoke', id=user.id) }}" style="color: red;">Onayı Kaldır</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

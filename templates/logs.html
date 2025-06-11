@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Envanter Logları</h2>
+<a href="{{ url_for('admin') }}">Geri</a>
+<table>
+    <tr>
+        <th>Timestamp</th>
+        <th>Kullanıcı</th>
+        <th>ID</th>
+        <th>Aksiyon</th>
+        <th>Detaylar</th>
+    </tr>
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.timestamp }}</td>
+        <td>{{ log.user_email }}</td>
+        <td>{{ log.entity_id }}</td>
+        <td>{{ log.action }}</td>
+        <td>{{ log.details }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

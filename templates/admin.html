@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<th>Admin Sayfası<br>
+
+<nav class="navbar navbar-dark bg-dark">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="{{ url_for('approve_users') }}">Hesap Onaylarına Git</a> |
+		<a class="navbar-brand" href="{{ url_for('view_logs') }}">Logs</a>
+	</div>
+</nav>
+
+<table id="inventoryTable" class="display nowrap" style="width:100%">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Adı</th>
+      <th>Kategori</th>
+      <th>Bölüm</th>
+      <th>Lokasyon</th>
+      <th>Seri No</th>
+      <th>Zimmetli Kişi</th>
+      <th>Durum</th>
+      <th>Notlar</th>
+      <th>Satın Alma Tarihi</th>
+      <th>Satın Alma Fiyatı</th>
+      <th>Garanti Bitiş Tarihi</th>
+      <th>Marka</th>
+      <th>Bakım Gereksinimi</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.id }}</td>
+      <td>{{ item.name }}</td>
+      <td>{{ item.category }}</td>
+      <td>{{ item.department }}</td>
+      <td>{{ item.location }}</td>
+      <td>{{ item.serial_number }}</td>
+      <td>{{ item.assigned_to or 'Zimmetli değil' }}</td>
+      <td>{{ item.status }}</td>
+      <td>{{ item.notes }}</td>
+      <td>{{ item.purchase_date }}</td>
+      <td>{{ item.purchase_price }}</td>
+      <td>{{ item.warranty_end }}</td>
+      <td>{{ item.supplier }}</td>
+      <td>{{ item.maintenance_required }}</td>
+      <td>
+        <a href="{{ url_for('item_details', id=item.id) }}">Göster</a> |
+        <a href="{{ url_for('edit', id=item.id) }}">Düzenle</a> |
+        <a href="{{ url_for('delete', id=item.id) }}">Sil</a> |
+        <a href="{{ url_for('download_qr_code', item_id=item.id) }}">QR Kodunu İndir</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  $(document).ready(function () {
+    // Filtreleme kutularını header altına ekle
+    $('#inventoryTable thead tr').clone(true).appendTo('#inventoryTable thead');
+    $('#inventoryTable thead tr:eq(1) th').each(function (i) {
+      if (i === 0 || i === 14) {
+        $(this).html(''); // Actions sütunu
+      } else {
+        var title = $(this).text();
+        $(this).html('<input type="text" placeholder="Filtrele" style="width: 100%; box-sizing: border-box;" />');
+        $('input', this).on('keyup change', function () {
+          if (table.column(i).search() !== this.value) {
+            table.column(i).search(this.value).draw();
+          }
+        });
+      }
+    });
+
+    var table = $('#inventoryTable').DataTable({
+      orderCellsTop: true,
+      fixedHeader: true,
+      dom: '<"top"lBf>rt<"bottom"ip><"clear">',
+      buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+      language: {
+        url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json"
+      },
+      columnDefs: [
+        { targets: -1, orderable: false }
+      ]
+    });
+  });
+</script>
+
+{% endblock %}

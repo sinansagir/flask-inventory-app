@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envanter Detayları</title>
+</head>
+<h2>{{ item.name }} - Detaylar - <a href="{{ url_for('edit', id=item.id) }}">Düzenle</a> - <a href="{{ url_for('delete', id=item.id) }}">Sil</a> - <a href="{{ url_for('index') }}">Geri</a></h2>
+<th>Envanter Adı: {{ item.name }}</th><br>
+<th>Kategori: {{ item.category }}</th><br>
+<th>Bölüm: {{ item.department }}</th><br>
+<th>Lokasyon/Oda:: {{ item.location }}</th><br>
+<th>Seri Numarası: {{ item.serial_number }}</th><br>
+<th>Zimmetli Kişi: {{ item.assigned_to or 'Zimmetli değil' }}</th>
+<form method="POST" action="{{ url_for('assign', item_id=item.id) }}">
+    <label>Zimmeti değiştir:</label>
+    <input type="text" name="assign_to">
+    <button type="submit">Zimmetle</button>
+</form>
+<th>Durum: {{ item.status }}</th><br>
+<th>Notlar: {{ item.notes }}</th><br>
+<th>Satın Alma Tarihi: {{ item.purchase_date }}</th><br>
+<th>Satın Alma Fiyatı: {{ item.purchase_price }}</th><br>
+<th>Garanti Bitiş Tarihi: {{ item.warranty_end }}</th><br>
+<th>Satın Alındığı Firma / Marka: {{ item.supplier }}</th><br>
+<th>Bakım Gereksinimi: {{ item.maintenance_required }}</th><br>
+<th>Resim:</th><br>
+{% if item.image_filename %}
+    <img src="{{ url_for('uploaded_file', filename=item.image_filename) }}" alt="Envanter Resmi" width="300">
+{% endif %}
+{% if item.qrkod %}
+    <br><img src="{{ url_for('uploaded_file', filename=item.qrkod) }}" alt="QR Code"><br>
+    <th><a href="{{ url_for('regenerate_qr_code', item_id=item.id) }}">QR Kodunu Yenile</a></th> |
+    <th><a href="{{ url_for('download_qr_code', item_id=item.id) }}">QR Kodunu İndir</a></th>
+{% endif %}
+</html>
+{% endblock %}
+
+

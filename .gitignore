@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Flask
+instance/
+uploads/
+migrations/
+*.db
+app.log
+
+# venv
+venv/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
