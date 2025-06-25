@@ -264,6 +264,7 @@ def add():
             assigned_to=assigned_to,
         )            
         db.session.add(new_item)
+        db.session.commit()
         
         # Envanter resmi ekle
         imgfile = request.files['image']
