@@ -10,7 +10,7 @@
 </head>
 <body>
     <h1>Envanter Düzenle</h1>
-    <form action="{{ url_for('edit', id=inventory.id) }}" method="POST">
+    <form action="{{ url_for('edit', id=inventory.id) }}" method="POST" enctype="multipart/form-data">
 		<label>Envanter Adı:</label>
 		<input type="text" name="name" value="{{ inventory.name }}" required><br>
 	
@@ -59,7 +59,15 @@
 
 		<label>Bakım Gereksinimi:</label>
 		<input type="text" name="maintenance_required" value="{{ inventory.maintenance_required }}"><br>
-        <input type="submit" value="Güncelle">
+ 
+ 		<label>Resim:</label>
+		<input type="file" name="image"><br>
+
+		{% if inventory.image_filename %}
+			<img src="{{ url_for('uploaded_file', filename=inventory.image_filename) }}" alt="Envanter Resmi" width="300">
+		{% endif %}
+
+        <br><input type="submit" value="Güncelle">
 
     </form>
     <a href="{{ url_for('admin') }}">Geri</a>

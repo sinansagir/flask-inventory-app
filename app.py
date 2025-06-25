@@ -316,6 +316,16 @@ def edit(id):
         inventory.warranty_end = datetime.strptime(request.form['warranty_end'], "%Y-%m-%d").date()
         inventory.supplier = request.form['supplier']
         inventory.maintenance_required = request.form['maintenance_required']
+                
+        # Envanter resmini güncelle
+        imgfile = request.files['image']
+        if imgfile:
+            filename = secure_filename(imgfile.filename)
+            file_ext = os.path.splitext(filename)[1]
+            new_filename = f"resim_{inventory.id}{file_ext}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+            imgfile.save(filepath)
+            inventory.image_filename = new_filename
         
         db.session.commit()  # Değişiklikleri veritabanına kaydediyoruz
 
