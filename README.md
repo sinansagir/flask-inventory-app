@@ -13,8 +13,8 @@ pip install -r requirements.txt
 export FLASK_APP=app.py
 flask db init  # Sadece ilk kez yapılır
 flask db migrate -m "initial migration"
-flask db upgrade```
-
+flask db upgrade
+```
 ## Kurulum Windows
 
 ```bash
@@ -27,4 +27,5 @@ set FLASK_APP=app.py
 set FLASK_ENV=development
 flask db init  # Sadece ilk kez yapılır
 flask db migrate -m "initial migration"
-flask db upgrade```
+flask db upgrade
+```
