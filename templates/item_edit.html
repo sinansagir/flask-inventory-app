@@ -60,14 +60,14 @@
 		<label>Bakım Gereksinimi:</label>
 		<input type="text" name="maintenance_required" value="{{ inventory.maintenance_required }}"><br>
  
- 		<label>Resim Değiştir:</label>
-		<input type="file" name="image"><br>
-
 		{% if inventory.image_filename %}
 			<img src="{{ url_for('uploaded_file', filename=inventory.image_filename) }}" alt="Envanter Resmi" width="300">
 		{% endif %}
 
-        <br><input type="submit" value="Güncelle">
+ 		<br><label>Resim Değiştir:</label>
+		<input type="file" name="image"><br>
+
+        <input type="submit" value="Güncelle">
 
     </form>
     <a href="{{ url_for('admin') }}">Geri</a>
