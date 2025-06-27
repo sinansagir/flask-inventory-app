@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, send_from_directory, current_app
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import event
+from sqlalchemy.exc import IntegrityError
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -233,110 +234,124 @@ def admin():
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
 def add():
-    if request.method == 'POST':
-        name = request.form['name']
-        category = request.form['category']
-        department = request.form['department']
-        location = request.form['location']
-        serial_number = request.form['serial_number']
-        assigned_to = request.form['assigned_to']
-        status = request.form['status']
-        notes = request.form['notes']
-        purchase_date = datetime.strptime(request.form['purchase_date'], "%Y-%m-%d").date()
-        purchase_price = request.form['purchase_price']
-        warranty_end = datetime.strptime(request.form['warranty_end'], "%Y-%m-%d").date()
-        supplier = request.form['supplier']
-        maintenance_required = request.form['maintenance_required']
-        
-        new_item = Inventory(
-            name=name,
-            category=category,
-            department=department,
-            location=location,
-            serial_number=serial_number,
-            status=status,
-            notes=notes,
-            purchase_date=purchase_date,
-            purchase_price=purchase_price,
-            warranty_end=warranty_end,
-            supplier=supplier,
-            maintenance_required=maintenance_required,
-            assigned_to=assigned_to,
-        )            
-        db.session.add(new_item)
-        db.session.commit()
-        
-        # Envanter resmi ekle
-        imgfile = request.files['image']
-        if imgfile:
-            filename = secure_filename(imgfile.filename)
-            file_ext = os.path.splitext(filename)[1]
-            db.session.add(new_item)
-            db.session.flush()  # new_item.id şimdi oluştu ama commit etmeden
-            new_filename = f"resim_{new_item.id}{file_ext}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
-            imgfile.save(filepath)
-            new_item.image_filename = new_filename
-            db.session.commit()
-        	
-        # QR kod oluştur
-        qr_filename = generate_qr_code(new_item.id)
-        new_item.qrkod = qr_filename
-        db.session.commit()
-        
-        # Log kaydı ekle
-        log_action(db, Log, "Ekleme", "Envanter", new_item.id, f"{new_item.name} adlı envanteri {current_user.email} kullanıcısı ekledi.")
-        
-        flash("Yeni envanter başarıyla eklendi!", category='success')
-        return redirect(url_for('index'))
+	if request.method == 'POST':
+		try:
+			name = request.form['name']
+			category = request.form['category']
+			department = request.form['department']
+			location = request.form['location']
+			serial_number = request.form['serial_number']
+			assigned_to = request.form['assigned_to']
+			status = request.form['status']
+			notes = request.form['notes']
+			purchase_date = datetime.strptime(request.form['purchase_date'], "%Y-%m-%d").date()
+			purchase_price = request.form['purchase_price']
+			warranty_end = datetime.strptime(request.form['warranty_end'], "%Y-%m-%d").date()
+			supplier = request.form['supplier']
+			maintenance_required = request.form['maintenance_required']
+			
+			new_item = Inventory(
+				name=name,
+				category=category,
+				department=department,
+				location=location,
+				serial_number=serial_number,
+				status=status,
+				notes=notes,
+				purchase_date=purchase_date,
+				purchase_price=purchase_price,
+				warranty_end=warranty_end,
+				supplier=supplier,
+				maintenance_required=maintenance_required,
+				assigned_to=assigned_to,
+			)            
+			db.session.add(new_item)
+			db.session.commit()
+			
+			# Envanter resmi ekle
+			imgfile = request.files['image']
+			if imgfile:
+				filename = secure_filename(imgfile.filename)
+				file_ext = os.path.splitext(filename)[1]
+				db.session.add(new_item)
+				db.session.flush()  # new_item.id şimdi oluştu ama commit etmeden
+				new_filename = f"resim_{new_item.id}{file_ext}"
+				filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+				imgfile.save(filepath)
+				new_item.image_filename = new_filename
+				db.session.commit()
+				
+			# QR kod oluştur
+			qr_filename = generate_qr_code(new_item.id)
+			new_item.qrkod = qr_filename
+			db.session.commit()
+			
+			# Log kaydı ekle
+			log_action(db, Log, "Ekleme", "Envanter", new_item.id, f"{new_item.name} adlı envanteri {current_user.email} kullanıcısı ekledi.")
+			
+			flash("Yeni envanter başarıyla eklendi!", category='success')
+			return redirect(url_for('index'))
+		except IntegrityError as e:
+			db.session.rollback()
+			if "UNIQUE constraint failed" in str(e.orig) or "duplicate key" in str(e.orig):
+				flash("Bu seri numarasına sahip bir envanter zaten var. Lütfen farklı bir seri numarası girin.", "danger")
+			else:
+				flash("Bir veritabanı hatası oluştu.", "danger")
 
-    return render_template('item_add.html')
-        
+	return render_template('item_add.html')
+
 # Envanter düzenleme işlemi
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit(id):
-    inventory = db.session.get(Inventory, id)  # Güncellenmek istenen demirbaş
-    if not inventory:
-    	abort(404)
+	inventory = db.session.get(Inventory, id)  # Güncellenmek istenen demirbaş
+	if not inventory:
+		abort(404)
 
-    if request.method == 'POST':
-        # Formdan gelen verilerle güncelleme yapıyoruz
-        inventory.name = request.form['name']
-        inventory.category = request.form['category']
-        inventory.department = request.form['department']
-        inventory.location = request.form['location']
-        inventory.serial_number = request.form['serial_number']
-        inventory.assigned_to = request.form['assigned_to']
-        inventory.status = request.form['status']
-        inventory.notes = request.form['notes']
-        inventory.purchase_date = datetime.strptime(request.form['purchase_date'], "%Y-%m-%d").date()
-        inventory.purchase_price = request.form['purchase_price']
-        inventory.warranty_end = datetime.strptime(request.form['warranty_end'], "%Y-%m-%d").date()
-        inventory.supplier = request.form['supplier']
-        inventory.maintenance_required = request.form['maintenance_required']
-                
-        # Envanter resmini güncelle
-        imgfile = request.files['image']
-        if imgfile:
-            filename = secure_filename(imgfile.filename)
-            file_ext = os.path.splitext(filename)[1]
-            new_filename = f"resim_{inventory.id}{file_ext}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
-            imgfile.save(filepath)
-            inventory.image_filename = new_filename
-        
-        db.session.commit()  # Değişiklikleri veritabanına kaydediyoruz
+	if request.method == 'POST':
+		try:
+			# Formdan gelen verilerle güncelleme yapıyoruz
+			inventory.name = request.form['name']
+			inventory.category = request.form['category']
+			inventory.department = request.form['department']
+			inventory.location = request.form['location']
+			inventory.serial_number = request.form['serial_number']
+			inventory.assigned_to = request.form['assigned_to']
+			inventory.status = request.form['status']
+			inventory.notes = request.form['notes']
+			inventory.purchase_date = datetime.strptime(request.form['purchase_date'], "%Y-%m-%d").date()
+			inventory.purchase_price = request.form['purchase_price']
+			inventory.warranty_end = datetime.strptime(request.form['warranty_end'], "%Y-%m-%d").date()
+			inventory.supplier = request.form['supplier']
+			inventory.maintenance_required = request.form['maintenance_required']
+					
+			# Envanter resmini güncelle
+			imgfile = request.files['image']
+			if imgfile:
+				filename = secure_filename(imgfile.filename)
+				file_ext = os.path.splitext(filename)[1]
+				new_filename = f"resim_{inventory.id}{file_ext}"
+				filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+				imgfile.save(filepath)
+				inventory.image_filename = new_filename
+			
+			db.session.commit()  # Değişiklikleri veritabanına kaydediyoruz
+	
+			# Log kaydı ekle
+			log_action(db, Log, "Düzenleme", "Envanter", inventory.id, f"{inventory.name} adlı envanteri {current_user.email} kullanıcısı düzenledi.")
+	
+			flash('Envanter başarıyla güncellendi!', 'success')
+			return redirect(url_for('admin'))
+		except IntegrityError as e:
+			db.session.rollback()
+			if "UNIQUE constraint failed" in str(e.orig) or "duplicate key" in str(e.orig):
+				flash("Bu seri numarasına sahip bir envanter zaten var. Lütfen farklı bir seri numarası girin.", "danger")
+			else:
+				flash("Bir veritabanı hatası oluştu.", "danger")
 
-        # Log kaydı ekle
-        log_action(db, Log, "Düzenleme", "Envanter", inventory.id, f"{inventory.name} adlı envanteri {current_user.email} kullanıcısı düzenledi.")
+	return render_template('item_edit.html', inventory=inventory)
 
-        flash('Envanter başarıyla güncellendi!', 'success')
-        return redirect(url_for('admin'))
-
-    return render_template('item_edit.html', inventory=inventory)
-    
 # Envanter silme işlemi
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
